@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Blood Bank System</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(to right, #f8fbff, #eef3f8);
+    color: #2b2b2b;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 20px;
+    color: #b30000;
+}
+
+.menu button {
+    padding: 10px 20px;
+    margin: 10px;
+    background: #b30000;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.section {
+    display: none;
+    margin-top: 20px;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    width: 320px;
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
+}
+
+input, select {
+    width: 90%;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button.action {
+    background: #b30000;
+    margin-top: 10px;
+    border-radius: 5px;
+    color: white;
+}
+
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+th {
+    background: #b30000;
+    color: white;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🩸 Blood Bank Management System</h1>
+
+<div class="menu">
+    <button onclick="showSection('donor')">Donor</button>
+    <button onclick="showSection('recipient')">Recipient</button>
+    <button onclick="showSection('blood')">Blood Stock</button>
+</div>
+
+<!-- DONOR -->
+<div id="donor" class="section">
+    <div class="container">
+        <h2>Add Donor</h2>
+        <input id="dname" placeholder="Name">
+        <input id="dcontact" placeholder="Contact">
+        <select id="dblood"></select>
+        <button class="action" onclick="addDonor()">Add Donor</button>
+    </div>
+
+    <button onclick="getDonors()">Show Donors</button>
+    <table id="donorTable"></table>
+</div>
+
+<!-- RECIPIENT -->
+<div id="recipient" class="section">
+    <div class="container">
+        <h2>Add Recipient</h2>
+        <input id="rname" placeholder="Name">
+        <input id="rcontact" placeholder="Contact">
+        <select id="rblood"></select>
+        <button class="action" onclick="addRecipient()">Add Recipient</button>
+    </div>
+
+    <button onclick="getRecipients()">Show Recipients</button>
+    <table id="recipientTable"></table>
+</div>
+
+<!-- BLOOD -->
+<div id="blood" class="section">
+    <h2>Check Blood Availability</h2>
+    <select id="checkBlood"></select>
+    <button onclick="checkBloodAvailability()">Check</button>
+    <h3 id="result"></h3>
+</div>
+
+<script>
+
+function loadBloodTypes() {
+    fetch("http://localhost:3000/blood-types")
+    .then(res => res.json())
+    .then(data => {
+
+        let options = "";
+
+        data.forEach(b => {
+            options += `<option value="${b.name}">${b.name}</option>`;
+        });
+
+        dblood.innerHTML = options;
+        rblood.innerHTML = options;
+        checkBlood.innerHTML = options;
+    });
+}
+
+function addDonor() {
+    fetch("http://localhost:3000/add-donor", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: dname.value,
+            contact_number: dcontact.value,
+            blood_group: dblood.value
+        })
+    })
+    .then(res => res.text())
+    .then(data => alert(data));
+}
+
+function getDonors() {
+    fetch("http://localhost:3000/donors")
+    .then(res => res.json())
+    .then(data => {
+
+        let table = "<tr><th>ID</th><th>Name</th><th>Contact</th><th>Blood</th></tr>";
+
+        data.forEach(d => {
+            table += `<tr>
+                <td>${d.donor_id}</td>
+                <td>${d.name}</td>
+                <td>${d.contact_number}</td>
+                <td>${d.blood_group}</td>
+            </tr>`;
+        });
+
+        donorTable.innerHTML = table;
+    });
+}
+
+function addRecipient() {
+    fetch("http://localhost:3000/add-recipient", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: rname.value,
+            contact_number: rcontact.value,
+            blood_group: rblood.value
+        })
+    })
+    .then(res => res.text())
+    .then(data => alert(data));
+}
+
+function getRecipients() {
+    fetch("http://localhost:3000/recipients")
+    .then(res => res.json())
+    .then(data => {
+
+        let table = "<tr><th>ID</th><th>Name</th><th>Contact</th><th>Blood</th></tr>";
+
+        data.forEach(r => {
+            table += `<tr>
+                <td>${r.recipient_id}</td>
+                <td>${r.name}</td>
+                <td>${r.contact_number}</td>
+                <td>${r.blood_group}</td>
+            </tr>`;
+        });
+
+        recipientTable.innerHTML = table;
+    });
+}
+
+function checkBloodAvailability() {
+    const group = document.getElementById("checkBlood").value;
+
+    fetch(`http://localhost:3000/blood/${group}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerHTML =
+            `<b>Available Units:</b> ${data.units} 🩸`;
+    });
+}
+
+function showSection(section) {
+    document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+    document.getElementById(section).style.display = "block";
+}
+
+window.onload = loadBloodTypes;
+
+</script>
+
+</body>
+</html>

@@ -13,7 +13,6 @@ A database-driven Blood Bank Management System developed to manage donor records
 
 ## Tech Stack
 - MySQL
-- Java
 - DBMS Concepts
 - HTML/CSS
 
